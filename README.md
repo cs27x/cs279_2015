@@ -1,4 +1,5 @@
-== Project Milestone 1
+#Project Milestone 1
+
 The goal of this milestone is to create enough of a concrete vision for you project to 
 allow other people to "kick the tires" on your idea. You should be prepared to present
 your prototype to both people in the class and __people outside of the class__.
