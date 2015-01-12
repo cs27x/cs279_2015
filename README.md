@@ -86,4 +86,6 @@ The Heilmeier questions:
   1. How long will it take?
   1. What are the midterm and final "exams" to check for success?  How will progress be measured?
 
+Your presentation should also provide a summary of related work, your hypothesis/assumptions, what experimentation you will do and how, metrics, etc. You should read the "research paper patterns" discussion (https://code.google.com/p/mobilecps/wiki/ResearchPaperPatterns) and the "how to conduct research" discussion (https://code.google.com/p/mobilecps/wiki/HowToConductResearch).
+
 Your slides should be checked into your repo and linked to from your README.
