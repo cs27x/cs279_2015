@@ -163,7 +163,7 @@ Now, we are going to set up distributed log collection and a dashboard to track 
 logstash-1.4.2/bin/logstash -f logstash.distributed.conf &
 cd word-finder && /cs279/node-v0.12.0-linux-x64/bin/node server.js > word.log
 ```
-2. Rebuild the container with "docker build -t cs279logger" 
+2. Rebuild the container with "docker build -t cs279logger ." 
 3. Change to parent directory
 4. Open the docker-compose.yml file, which should look like this:
 
