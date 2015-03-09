@@ -1,0 +1,13 @@
+web:
+  image: cs279logger
+  links:
+    - elk
+  ports:
+    - "5005:5005"
+    - "3000:3000"
+elk:
+  image: elk
+  ports:
+    - "5601:5601"
+    - "9200:9200"
+    - "5000:5000"
