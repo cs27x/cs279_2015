@@ -124,6 +124,7 @@ This command downloads NodeJS, untars it, and then adds the NodeJS bin directory
 
 Now that we have built a container with NodeJS and other frameworks, we can now run a simple NodeJS app inside of it. We are going to run a NodeJS / Express word finder app (see https://github.com/cs27x/word-finder). 
 
+0. Open the cs279webapp directory
 1. Open the Dockerfile and look at it:
 
 ```
