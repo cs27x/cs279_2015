@@ -30,7 +30,7 @@ going to run a MongoDB container from Docker Hub (GitHub for Docker containers).
    access it. We need to relaunch the container and expose the container to the host
    (e.g., your computer) so that you can access it.
    
-5. Stop the container by typing "docker kill <id\_of\_docker\_container\_from\_ps>
+5. Stop the container by typing "docker kill id\_of\_docker\_container\_from\_ps
 
 6. Relaunch the container with port forwarding "docker run -p 9200:27017 -d mongo"
 
@@ -50,11 +50,11 @@ going to run a MongoDB container from Docker Hub (GitHub for Docker containers).
    [Linux Users] Docker runs natively and you will use localhost as the IP address of the
    Docker instance.
    
-8. To access MongoDB, open a web browser and visit http://<ip\_from\_step\_8>:9200
+8. To access MongoDB, open a web browser and visit http://ip\_from\_step\_8:9200
 
    You should see a message about accessing MongoDB using HTTP on the native driver port
    
-9. Stop the MongoDB container "docker kill <mongo\_container\_id>"
+9. Stop the MongoDB container "docker kill mongo\_container\_id"
 
 ## Step 2: Building Your First Container
 
@@ -79,7 +79,8 @@ ADD . /cs279
 The Dockerfile specifies how to build a new container. This container is based on an existing container "dockerfile/java:oracle-java8". The only new additions to the existing container are a new working directory "cs279"
 and the inclusion of the contents of the current host directory's contents inside the /cs279 directory in the container.
 
-4. Now, we are going to build a container with this Dockerfile. Run "docker build -t cs279java ."
+4. Now, we are going to build a container with this Dockerfile. Run "docker build -t cs279java ." The "-t" flag and "cs279java" tell Docker what to name the container. You can change the name of a container by changing the value passed with the "-t" flag.
+
 5. We can now run and test our new container by running a shell inside of it with "docker run -i -t cs279java /bin/bash" 
 
    When you get to the shell, run "java" to make sure that it was properly set up. Then, type "exit" to leave the container.
@@ -96,8 +97,8 @@ ADD https://download.elasticsearch.org/logstash/logstash/logstash-1.4.2.tar.gz /
 RUN tar -xvf /logstash.tar.gz
 ```
 
-7. Build the new container by running "docker build -t cs279logger ."
-8. Launch the new container with "docker run -i -t cs279logger /bin/bash" and run "ls" to make sure that the logstash was downloaded and untarred. You should also see the Dockerfile that you created in the /cs279 directory. Type "exit" to leave the container.
+7. Build the new container by running "docker build -t cs279base ."
+8. Launch the new container with "docker run -i -t cs279base /bin/bash" and run "ls" to make sure that the logstash was downloaded and untarred. You should also see the Dockerfile that you created in the /cs279 directory. Type "exit" to leave the container.
 9. Next, we are going to add NodeJS to the container as follows:
 
 ```
@@ -115,9 +116,81 @@ ENV PATH=$PATH:/cs279/node-v0.12.0-linux-x64/bin
 
 This command downloads NodeJS, untars it, and then adds the NodeJS bin directory to the path. 
 
-10. Rebuild the container using the command "docker build -t cs279logger ."
-11. Launch the container again with "docker run -t -i cs279logger /bin/bash" and then check that NodeJS was installed by running "npm". 
-12. You have now built a new container called "cs279logger" that has Java 8, Logstash, and NodeJS installed. 
+10. Rebuild the container using the command "docker build -t cs279base ."
+11. Launch the container again with "docker run -t -i cs279base /bin/bash" and then check that NodeJS was installed by running "npm". 
+12. You have now built a new container called "cs279base" that has Java 8, Logstash, and NodeJS installed. 
 
+## Step 3: Running a NodeJS App
 
+Now that we have built a container with NodeJS and other frameworks, we can now run a simple NodeJS app inside of it. We are going to run a NodeJS / Express word finder app (see https://github.com/cs27x/word-finder). 
+
+1. Open the Dockerfile and look at it:
+
+```
+FROM cs279base
+WORKDIR /cs279
+ADD . /cs279
+RUN git clone https://github.com/cs27x/word-finder.git
+RUN cd word-finder && npm install
+CMD /cs279/start.sh
+EXPOSE 3000
+```
+
+First, notice that we are building on top of the container that we built in the previous step. This new container
+clones an existing NodeJS app from a Git repo and then downloads its NodeJS dependencies using npm. This Dockerfile includes two new concepts:
+
+   1. CMD - specifies the default command that is run after the container starts. In the previous step, you provided    
+     "/bin/bash" as the command to run inside of the container. By providing a CMD option, you can eliminate having to open a        shell and allow Docker to automatically start your app. 
+   2. EXPOSE - opens the specified port on the container to receive incoming connections
+
+2. Build the new container -- you should know how to do this now -- and name it "cs279logger". 
+3. Run the container with "docker run -p 3000:3000 cs279logger &" 
+4. Open a browser to http://docker\_ip:3000/ and you should see the word count application
+5. Use "docker ps" to find the container ID and kill it
+ 
+## Installing Docker-Compose
+
+Install Docker-Compose as described here: https://docs.docker.com/compose/install/
+
+## Coordinating Multiple Containers with Docker-Compose
+
+Now, we are going to set up distributed log collection and a dashboard to track our nodes. To do this, we need to set up the Elasticsearch distributed database and search engine. We are also going to install Kibana, a web-base dashboard for Elasticsearch. This step will require creating two separate containers and configuring them so that they can talk to each other.
+
+1. Edit the first line of the start.sh file so that it reads as follows (logstash.conf --> logstash.distributed.conf):
+
+```
+logstash-1.4.2/bin/logstash -f logstash.distributed.conf &
+cd word-finder && /cs279/node-v0.12.0-linux-x64/bin/node server.js > word.log
+```
+2. Rebuild the container with "docker build -t cs279logger" 
+3. Change to parent directory
+4. Open the docker-compose.yml file, which should look like this:
+
+```
+web:
+  image: cs279logger
+  links:
+    - elk
+  ports:
+    - "5005:5005"
+    - "3000:3000"
+elk:
+  image: sebp/elk
+  ports:
+    - "5601:5601"
+    - "9200:9200"
+    - "5000:5000"
+```
+Docker-Compose is a tool for launching and coordinating multiple containers. In the example above, we are launching two different container instances tagged "web" and "elk". The "web" instance is using our "cs279logger" container that we created in the previous step. The "elk" instance is using a preconfigured Elasticsearch and Kibana container from Docker Hub. The "links" section of the web instance tells Docker-Compose that the web instance needs to be able to see the "elk" instance and adds a "elk" host to the web instance's host file. This change allows the web instance to refer to the host "elk" and access the elk instance (this is how Logstash finds the Elasticsearch instance in the logstash.distributed.conf file).
+
+5. Launch the entire set up by running "docker-compose up". Docker-Compose should launch and configure both containers. When you see a message like this:
+
+```
+web_1 | {:timestamp=>"2015-03-09T14:52:14.437000+0000", :message=>"Using milestone 2 input plugin 'file'. This plugin should be stable, but if you see strange behavior, please let us know! For more information on plugin milestones, see http://logstash.net/docs/1.4.2/plugin-milestones", :level=>:warn}
+```
+The entire stack should be running. 
+
+6. Check that the word finder app is up by going to http://docker\_ip:3000/ and running a word search
+7. We can now check that the distributed log management is running by going to http://docker\_ip:5601 and opening Kibana
+8. Try creating a Kibana visualization of the top 10 search terms
 
