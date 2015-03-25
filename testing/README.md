@@ -13,3 +13,5 @@ CS 279 Demos
 -CoffeeRec: http://fika.meteor.com (mobile)
 
 -MOOC statistics: https://drive.google.com/file/d/0B7milwpKclFEdlNmRGdlRlJra1k/view?usp=sharing
+
+-VUMC Hand Washing: https://github.com/astonking/VUMCHandWashing/tree/dev
