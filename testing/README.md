@@ -6,4 +6,5 @@ CS 279 Demos
 
 -Ideal (InstaMarry): http://goo.gl/EAGr2a
 
+-Metro School Attendance Manager: https://github.com/VictorCoder123/cs279AttendanceManager/tree/qishenwork
 
