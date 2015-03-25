@@ -10,3 +10,5 @@ CS 279 Demos
 
 -PickupSports:  https://drive.google.com/file/d/0B4Lq9vxay5UTYnhaYTI0ckJWdmM/view?usp=sharing
 
+-CoffeeRec: http://fika.meteor.com (mobile)
+
